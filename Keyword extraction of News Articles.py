@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[310]:
+# In[26]:
 
 
 import requests
 import re
 from bs4 import BeautifulSoup
-import nltk
-import subprocess
 
 
-# In[311]:
+# In[27]:
 
 
 url = "https://www.reuters.com/markets"
@@ -22,12 +20,14 @@ for link in soup2.find_all("a", href=re.compile('/article')):
     link = url + link["href"]
     urls.append(link)
 urls = set(urls)
+print(urls)
 
 
-# In[312]:
+# In[28]:
 
 
 from sklearn.feature_extraction.text import TfidfVectorizer
+import nltk
 
 rawDocs = []
 for link in urls:
@@ -42,19 +42,40 @@ for link in urls:
             content += p.get_text() + "\n"
         if (len(content) > 1200) :
             rawDocs.append((title, content, link))
+            print(content + "\n\n")
 stopWords = nltk.corpus.stopwords.words("english")
+print(stopWords)
 stopWords.append("live")
 stopWords.append("minute")
 stopWords.append("half")
 stopWords.append("first half")
 stopWords.append("quarter")
+
+
+# In[ ]:
+
+
+from nltk.stem.snowball import EnglishStemmer
+stemmer = EnglishStemmer()
+
+def checkPOS(word) :
+    return (word[1] == "NN") or (word[1] == "FW") (word[1] == "VB")
+
+analyzer = TfidfVectorizer().build_analyzer()
+def customAnalyzer(doc):
+    return [word[0] for word in nltk.pos_tag(analyzer(doc)) if checkPOS(word)]
+
+
+# In[ ]:
+
+
 tfidf = TfidfVectorizer(stop_words=stopWords, 
                         token_pattern=u'(?ui)\\b\\w*[a-z]+\\w*\\b',
                        ngram_range=(1,2))
 tfidfVector = tfidf.fit_transform([i[1] for i in rawDocs])
 
 
-# In[313]:
+# In[ ]:
 
 
 import numpy as np
@@ -67,17 +88,21 @@ topIndices = np.flip(np.argsort(tfidfVector[7].toarray()))
 #tfidf.get_feature_names()[np.argmax(tfidfVector[2].toarray())]
 
 
+# In[ ]:
 
-# In[228]:
+
+articlesKeywordPairs
+
+
+# In[ ]:
 
 
 import smtplib, ssl
 
-
 smtp_server = "smtp.gmail.com"
 port = 587  # For starttls
 sender_email = "newskeywordextractor@gmail.com"
-password = "ENTER PASSWORD HERE!"
+password = "keywords123"
 
 # Create a secure SSL context
 context = ssl.create_default_context()
@@ -98,7 +123,12 @@ except Exception as e:
     # Print any error messages to stdout
     print(e)
 finally:
-    print("Sent the email!")
     server.quit()
     
+
+
+# In[ ]:
+
+
+
 
